@@ -1,6 +1,8 @@
 {-# LANGUAGE DataKinds       #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TypeOperators   #-}
+{-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE DeriveAnyClass #-}
 
 module Api where
 
@@ -11,8 +13,11 @@ import Network.Wai
 import Network.Wai.Handler.Warp
 import Servant
 
+import GHC.Generics
+
 type API
     = "cat" :> Get '[JSON] Cat
+    :<|> "dog" :> Get '[JSON] Dog
 
 newtype Cat = Cat { cat :: String }
 
@@ -20,8 +25,14 @@ instance ToJSON Cat where
     toJSON (Cat mew) =
         object [ "cat" .= mew ]
 
+newtype Dog = Dog { dog :: String }
+    deriving (Generic, ToJSON)
+
 server :: Server API
-server = pure (Cat { cat = "mrowl" })
+server = cats :<|> dogs
+  where
+    cats = pure (Cat { cat = "mrowl" })
+    dogs = pure (Dog { dog = "zzzzzzzz" })
 
 api :: Proxy (API :<|> Raw)
 api = Proxy
